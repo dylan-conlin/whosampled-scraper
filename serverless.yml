@@ -1,0 +1,14 @@
+service: whosampled-scraper
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  
+functions:
+  whosampled:
+    handler: api/sample.get
+    events:
+      - http:
+          path: samples
+          method: get
+
