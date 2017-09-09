@@ -63,31 +63,45 @@ module.exports.get = (event, context, callback) => {
 
   var samples = function() {
     return new Promise((resolve, reject) => {
-      /*       var q = encodeURIComponent(event.queryStringParameters.q);*/
-      var q = encodeURIComponent("gold digger");
-      var connectionsUrl =
-        "http://www.whosampled.com/search/connections/?q=" + q;
+      var q;
+      if (
+        event &&
+        event.queryStringParameters &&
+        event.queryStringParameters.q
+      ) {
+        var q = encodeURIComponent(event.queryStringParameters.q);
+      }
 
-      x(connectionsUrl, {
-        songs: x("li.listEntry", [{ sampleUrl: "a@href" }])
-      })((err, result) => {
-        if (err) {
-          reject(err);
-          return;
-        }
+      /* var q = encodeURIComponent("gold digger");
+       * var q = ""
+       * */
+      if (q && q.length > 0) {
+        var connectionsUrl =
+          "http://www.whosampled.com/search/connections/?q=" + q;
 
-        result.songs = result.songs.slice(0, 1);
+        x(connectionsUrl, {
+          songs: x("li.listEntry", [{ sampleUrl: "a@href" }])
+        })((err, result) => {
+          if (err) {
+            reject(err);
+            return;
+          }
 
-        const samples = result.songs.map(item => {
-          return _sample(item.sampleUrl);
+          result.songs = result.songs.slice(0, 1);
+
+          const samples = result.songs.map(item => {
+            return _sample(item.sampleUrl);
+          });
+
+          resolve(
+            Promise.all(samples).then(values => {
+              return values;
+            })
+          );
         });
-
-        resolve(
-          Promise.all(samples).then(values => {
-            return values;
-          })
-        );
-      });
+      } else {
+        resolve([]);
+      }
     });
   };
 
